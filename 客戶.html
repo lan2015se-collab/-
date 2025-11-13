@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服務人員評價表單</title>
+<style>
+body {
+  font-family: "Noto Sans TC", sans-serif;
+  background: #f4f6f8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+.container {
+  background: white;
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  width: 90%;
+  max-width: 600px;
+}
+h2 { text-align:center; color:#333; }
+label { display:block; margin-top:15px; color:#444; font-weight:bold; }
+input, select, textarea { width:100%; margin-top:5px; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:16px; }
+textarea { resize:none; height:100px; }
+.stars { display:flex; gap:8px; font-size:28px; cursor:pointer; color:#ccc; margin-top:5px; }
+.stars .active { color:#f5c518; }
+button { margin-top:20px; width:100%; padding:12px; background-color:#007bff; border:none; border-radius:8px; color:white; font-size:16px; cursor:pointer; }
+button:hover { background-color:#0056b3; }
+.delete-btn { background-color:#dc3545; width:auto; padding:6px 12px; border-radius:6px; font-size:14px; margin-top:8px; }
+.delete-btn:hover { background-color:#b02a37; }
+.thankyou { display:none; text-align:center; font-size:18px; color:#28a745; margin-top:15px; }
+.review-list { margin-top:30px; border-top:1px solid #ddd; padding-top:20px; }
+.review-item { background:#f9f9f9; border-radius:10px; padding:15px; margin-bottom:10px; box-shadow:0 2px 6px rgba(0,0,0,0.05); }
+.review-item strong { color:#333; }
+.stars-display { color:#f5c518; margin:3px 0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>評價我們的服務人員</h2>
+<form id="reviewForm">
+  <label>姓名：</label>
+  <input type="text" id="name" required>
+
+  <label>服務人員：</label>
+  <select id="staff" required>
+    <option value="">請選擇服務人員</option>
+    <option value="李東羿（編號1）">李東羿（編號1）</option>
+    <option value="陳宇睿（編號2）">陳宇睿（編號2）</option>
+    <option value="溫世鵬（編號3）">溫世鵬（編號3）</option>
+  </select>
+
+  <label>星評：</label>
+  <div class="stars" id="stars">
+    <span data-value="1">★</span>
+    <span data-value="2">★</span>
+    <span data-value="3">★</span>
+    <span data-value="4">★</span>
+    <span data-value="5">★</span>
+  </div>
+
+  <label>原因：</label>
+  <textarea id="reason" placeholder="請輸入您的意見..." required></textarea>
+
+  <button type="submit">送出評價</button>
+</form>
+<div class="thankyou">感謝您的評價！🙏</div>
+
+<div class="review-list" id="reviewList"></div>
+</div>
+
+<script>
+const stars = document.querySelectorAll('#stars span');
+let rating = 0;
+stars.forEach(star => {
+  star.addEventListener('click', () => {
+    rating = star.dataset.value;
+    stars.forEach(s => s.classList.remove('active'));
+    for(let i=0;i<rating;i++){ stars[i].classList.add('active'); }
+  });
+});
+
+const form = document.getElementById('reviewForm');
+const thankyou = document.querySelector('.thankyou');
+const reviewList = document.getElementById('reviewList');
+
+window.onload = loadReviews;
+
+form.addEventListener('submit', e=>{
+  e.preventDefault();
+  if(rating===0){ alert('請先選擇星評！'); return; }
+
+  const name = document.getElementById('name').value.trim();
+  const staff = document.getElementById('staff').value.trim();
+  const reason = document.getElementById('reason').value.trim();
+
+  const review = { id: Date.now(), name, staff, rating, reason, time: new Date().toLocaleString() };
+
+  let reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+  reviews.push(review);
+  localStorage.setItem('reviews', JSON.stringify(reviews));
+
+  form.reset(); stars.forEach(s=>s.classList.remove('active')); rating=0;
+  thankyou.style.display='block'; setTimeout(()=>thankyou.style.display='none',2000);
+
+  loadReviews();
+});
+
+// 請求刪除評論
+function requestDelete(id){
+  const reason = prompt("請輸入刪除理由：");
+  if(!reason) return;
+  const reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+  const review = reviews.find(r=>r.id===id);
+  if(!review) return;
+  let deleteRequests = JSON.parse(localStorage.getItem('deleteRequests')) || [];
+  deleteRequests.push({
+    id: Date.now(),
+    reviewId: review.id,
+    name: review.name,
+    staff: review.staff,
+    reason: reason,
+    time: new Date().toLocaleString()
+  });
+  localStorage.setItem('deleteRequests', JSON.stringify(deleteRequests));
+  alert('刪除請求已提交，請等待後台審核');
+}
+
+function loadReviews(){
+  let reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+  reviewList.innerHTML='';
+  if(reviews.length===0){ reviewList.innerHTML='<p style="text-align:center;color:#777;">目前尚無任何評價。</p>'; return; }
+  reviews.slice().reverse().forEach(r=>{
+    const div = document.createElement('div');
+    div.className='review-item';
+    div.innerHTML=`
+      <strong>${r.name}</strong> 對 <strong>${r.staff}</strong> 的評價<br>
+      <div class="stars-display">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+      <p>${r.reason}</p>
+      <small style="color:#777;">時間：${r.time}</small><br>
+      <button class="delete-btn" onclick="requestDelete(${r.id})">要求刪除評論</button>
+    `;
+    reviewList.appendChild(div);
+  });
+}
+</script>
+
+</body>
+</html>

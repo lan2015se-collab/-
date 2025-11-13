@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服務人員後台管理</title>
+<style>
+body { font-family:"Noto Sans TC", sans-serif; background:#f0f2f5; padding:20px; }
+h2 { text-align:center; color:#333; }
+.section { background:white; padding:20px; border-radius:12px; margin:20px auto; max-width:700px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+.review-item, .request-item { border:1px solid #ddd; border-radius:10px; padding:12px; margin-bottom:12px; background:#f9f9f9; }
+.stars-display { color:#f5c518; margin:3px 0; }
+button { background-color:#dc3545; color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer; font-size:14px; }
+button:hover { background-color:#b02a37; }
+.approve-btn { background-color:#28a745; margin-left:8px; }
+.approve-btn:hover { background-color:#1e7e34; }
+</style>
+</head>
+<body>
+
+<h2>服務人員後台管理系統</h2>
+
+<div class="section">
+  <h3>所有顧客評論</h3>
+  <div id="reviewList"></div>
+</div>
+
+<div class="section">
+  <h3>刪除評論要求</h3>
+  <div id="deleteRequests"></div>
+</div>
+
+<script>
+function loadData(){
+  const reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+  const requests = JSON.parse(localStorage.getItem('deleteRequests')) || [];
+
+  const reviewList = document.getElementById('reviewList');
+  const requestList = document.getElementById('deleteRequests');
+
+  reviewList.innerHTML=''; requestList.innerHTML='';
+
+  if(reviews.length===0){ reviewList.innerHTML='<p style="color:#777;">目前尚無任何評論。</p>'; }
+  else {
+    reviews.slice().reverse().forEach(r=>{
+      const div=document.createElement('div');
+      div.className='review-item';
+      div.innerHTML=`
+        <strong>${r.name}</strong> 對 <strong>${r.staff}</strong> 的評價<br>
+        <div class="stars-display">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+        <p>${r.reason}</p>
+        <small style="color:#777;">時間：${r.time}</small><br>
+        <button onclick="deleteReview(${r.id})">刪除評論</button>
+      `;
+      reviewList.appendChild(div);
+    });
+  }
+
+  if(requests.length===0){ requestList.innerHTML='<p style="color:#777;">目前沒有刪除請求。</p>'; }
+  else {
+    requests.slice().reverse().forEach(req=>{
+      const div=document.createElement('div');
+      div.className='request-item';
+      div.innerHTML=`
+        <strong>${req.name}</strong> 要求刪除對 <strong>${req.staff}</strong> 的評論<br>
+        <p>原因：${req.reason}</p>
+        <small style="color:#777;">時間：${req.time}</small><br>
+        <button class="approve-btn" onclick="approveDelete(${req.id})">同意刪除</button>
+        <button onclick="rejectDelete(${req.id})">拒絕</button>
+      `;
+      requestList.appendChild(div);
+    });
+  }
+}
+
+function deleteReview(id){
+  if(!confirm('確定要刪除此評論嗎？')) return;
+  let reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+  reviews = reviews.filter(r=>r.id!==id);
+  localStorage.setItem('reviews', JSON.stringify(reviews));
+  loadData();
+}
+
+function approveDelete(id){
+  let reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+  let requests = JSON.parse(localStorage.getItem('deleteRequests')) || [];
+  const req = requests.find(r=>r.id===id);
+  if(!req) return;
+  reviews = reviews.filter(r=>r.id!==req.reviewId);
+  requests = requests.filter(r=>r.id!==id);
+  localStorage.setItem('reviews', JSON.stringify(reviews));
+  localStorage.setItem('deleteRequests', JSON.stringify(requests));
+  loadData();
+}
+
+function rejectDelete(id){
+  let requests = JSON.parse(localStorage.getItem('deleteRequests')) || [];
+  requests = requests.filter(r=>r.id!==id);
+  localStorage.setItem('deleteRequests', JSON.stringify(requests));
+  loadData();
+}
+
+window.onload = loadData;
+</script>
+
+</body>
+</html>
