@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHuuuuuuu! - Music Discovery Platform</title>
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+body {
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+background: #f5f5f5;
+}
+iframe {
+border: none;
+width: 100%;
+height: 100vh;
+}
+</style>
+</head>
+<body>
+<iframe src="https://eblog-illusd.lovable.app/" id="shuuframe"></iframe>
+
+<script>
+// Auto-close the "Made with Manus" button when iframe loads
+const iframe = document.getElementById('shuuframe');
+
+iframe.onload = function() {
+try {
+// Wait a moment for the page to fully render
+setTimeout(() => {
+// Try to find and click the close button
+const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+// Look for the Made with Manus close button (typically in bottom right)
+const closeButtons = iframeDoc.querySelectorAll('button[aria-label*="close"], button[class*="close"], [class*="manus"] button');
+
+// Also try to find by specific selectors
+const manusBadge = iframeDoc.querySelector('[class*="manus-badge"], [class*="made-with"]');
+if (manusBadge) {
+const closeBtn = manusBadge.querySelector('button');
+if (closeBtn) {
+closeBtn.click();
+}
+}
+
+// Try alternative approach - look for all buttons in bottom right
+for (let btn of closeButtons) {
+if (btn.textContent.includes('×') || btn.getAttribute('aria-label')?.includes('close')) {
+btn.click();
+break;
+}
+}
+}, 1000);
+} catch (e) {
+console.log('Cross-origin restriction - button auto-close not available');
+}
+};
+</script>
+</body>
+</html>
