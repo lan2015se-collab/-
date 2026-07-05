@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>Sugar Honey Ice Tea</title>
+    <style>
+        body { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fdf6e3;
+        }
+        #message { font-size: 32px; color: #333; margin-bottom: 30px; }
+        
+        /* 美化後的按鈕樣式 */
+        .btn-yes {
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            border: none;
+            border-radius: 50px; /* 圓潤外觀 */
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-yes:hover {
+            transform: scale(1.05); /* 滑鼠懸停時微放大 */
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            filter: brightness(1.1);
+        }
+
+        .btn-yes:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="content">
+        <h1 id="message">Do you want to drink SUGAR HONEY ICE TEA?</h1>
+        <button id="yesBtn" class="btn-yes">Yes</button>
+    </div>
+
+    <iframe id="musicPlayer" width="0" height="0" 
+            src="https://www.youtube.com/embed/naoGk-Zjc1s?autoplay=0" 
+            frameborder="0" allow="autoplay"></iframe>
+
+    <script>
+        const btn = document.getElementById('yesBtn');
+        const message = document.getElementById('message');
+        const player = document.getElementById('musicPlayer');
+
+        btn.addEventListener('click', function() {
+            message.innerText = "Thank u!";
+            btn.style.display = 'none';
+            player.src = "https://www.youtube.com/embed/naoGk-Zjc1s?autoplay=1";
+        });
+    </script>
+
+</body>
+</html>
